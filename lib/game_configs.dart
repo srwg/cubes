@@ -43,7 +43,34 @@ Block buildBlock(List config, {is_fixed = false, is_placed = false, pos = 0}) {
   return Block(g, config[0], is_fixed: is_fixed, is_placed: is_placed, pos: pos);
 }
 
+/** Game configuration */
+const GAME = [
+  [-1, 0],
+  [-1, 0],
+  [0, 3],
+  [-1, 0],
+  [-1, 0],
+  [22, 1],
+  [-1, 0],
+  [-1, 0],
+  [-1, 0],
+  [55, 7],
+  [88, 6],
+  [34, 0],
+];
 
+BigInt buildGame(BigInt board, List<Block> blocks, List<Block> blocks_home) {
+  for (int i = 0; i < blocks.length; ++i) {
+    if (GAME[i][0] >= 0) {
+      blocks[i].setIndex(GAME[i][1]);
+      board = blocks[i].place(GAME[i][0], board);
+      blocks[i].is_fixed = true;
+    } else {
+      blocks_home.add(blocks[i]);
+    }
+  }
+  return board;
+}
 
 
 

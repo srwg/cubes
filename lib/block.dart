@@ -22,20 +22,20 @@ class Block {
 
   bool isSelected(int pos) {
     if (is_fixed || !is_placed || this.pos > pos) return false;
-    return _block.getMask() >> (pos - this.pos) & BigInt.one != BigInt.zero;
+    return _block.mask >> (pos - this.pos) & BigInt.one != BigInt.zero;
   }
 
   BigInt getMask() {
-    return is_placed ? _block.getMask() << pos: BigInt.zero;
+    return is_placed ? _block.mask << pos: _block.native_mask;
   }
 
   BigInt place(int pos, BigInt board) {
-    if (is_placed || _block.getMask() << pos & board != BigInt.zero) {
+    if (is_placed || _block.mask << pos & board != BigInt.zero) {
       return board;
     }
     this.pos = pos;
     is_placed = true;
-    return board | (_block.getMask() << pos);
+    return board | (_block.mask << pos);
   }
 
   BigInt replace(BigInt board) {
@@ -43,7 +43,7 @@ class Block {
       return board;
     }
     is_placed = false;
-    return board - (_block.getMask() << this.pos);
+    return board - (_block.mask << this.pos);
   }
 
   BigInt rotate(BigInt board) {
@@ -55,23 +55,31 @@ class Block {
     _block = _group.get(_g_index);
     return board;
   }
+
+  void setIndex(int i) {
+    _g_index = i;
+    _block = _group.get(_g_index);
+  }
 }
 
 // A immutable block with fixed rotation.
 class BlockProto {
   final List<int> _proto;
-  BigInt _mask;
+  BigInt native_mask;
+  BigInt mask;
 
   BlockProto(this._proto) {
-    _mask = BigInt.from(0);
-    for (int row in _proto.reversed) {
-      _mask = (_mask << W) | BigInt.from(row);
-    }
+    native_mask = _computeMask(BS);
+    mask = _computeMask(W);
   }
 
-  BigInt getMask() => _mask;
-
-  List<int> getProto() => _proto;
+  BigInt _computeMask(int w) {
+    var m = BigInt.zero;
+    for (int row in _proto.reversed) {
+      m = (m << w) | BigInt.from(row);
+    }
+    return m;
+  }
 }
 
 // A block group contains a set of blocks that are connected through rotation.
